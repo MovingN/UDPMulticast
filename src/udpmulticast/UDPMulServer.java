@@ -30,23 +30,23 @@ public class UDPMulServer {
     //colore reset
     public static final String RESET = "\033[0m";
     //porta del Server
-    int port = 2000;
+    int porta = 2000;
     //oggetto Socket UDP 
     DatagramSocket dSocket = null;
 
     //datagramma UDP ricevuto dal client
-    DatagramPacket inPacket;
+    DatagramPacket in;
     //datagramma UDP di risposta da inviare
-    DatagramPacket outPacket;
+    DatagramPacket out;
     //Buffer per il contenuto del segmento da ricevere
     byte[] inBuffer;
 
     //Indirizzo del gruppo Multicast UDP
     InetAddress groupAddress;
     //messaggio ricevuto
-    String messageIn;
+    String msgIn;
     //messaggio da inviare
-    String messageOut;
+    String msgOut;
 
     
         try {
@@ -54,54 +54,57 @@ public class UDPMulServer {
             System.out.println(BLU + "SERVER UDP" + RESET);
         //1) SERVER IN ASCOLTO 
         //si crea il socket e si associa alla porta specifica
-        dSocket = new DatagramSocket(port);
+        dSocket = new DatagramSocket(porta);
         System.out.println(BLU + "Apertura porta in corso!" + RESET);
 
         while (true) {
-            //si prepara il buffer per il messaggio da ricevere
-            inBuffer = new byte[256];
-
-            //2) RICEZIONE MESSAGGIO DEL CLIENT
-            //si crea un datagramma UDP in cui trasportare il buffer per tutta la sua lunghezza
-            inPacket = new DatagramPacket(inBuffer, inBuffer.length);
-            //si attende il pacchetto dal client
-            dSocket.receive(inPacket);
-
-            //si recupera l'indirizzo IP e la porta UDP del client
-            InetAddress clientAddress = inPacket.getAddress();
-            int clientPort = inPacket.getPort();
-
-            //si stampa a video il messaggio ricevuto dal client
-            messageIn = new String(inPacket.getData(), 0, inPacket.getLength());
-            System.out.println(ROSSO + "Messaggio ricevuto dal client " + clientAddress
-                    + ":" + clientPort + "\n\t" + messageIn + RESET);
-
-            //3)RISPOSTA AL CLIENT
-            //si prepara il datagramma con i dati da inviare
-            messageOut = "Ricevuta richiesta!";
-            outPacket = new DatagramPacket(messageOut.getBytes(), messageOut.length(), clientAddress, clientPort);
-
-            //si inviano i dati
-            dSocket.send(outPacket);
-            System.out.println(BLU + "Spedito messaggio al client: " + messageOut + RESET);
-
-            //4)INVIO MESSAGGIO AL GRUPPO DOPO UNA SOSPENSIONE 
-            //si recupera l'IP gruppo
-            groupAddress = InetAddress.getByName("239.255.255.250");
-            //si inizializza la porta del gruppo
-            int groupPort = 1900;
-
-            //si prepara il datagramma con i dati da inviare al gruppo
-            messageOut = "Benvenuti a tutti!";
-
-            outPacket = new DatagramPacket(messageOut.getBytes(), messageOut.length(), groupAddress, groupPort);
-
-            //si inviano i dati
-            dSocket.send(outPacket);
-            System.out.println(BLU + "Spedito messaggio al gruppo: " + messageOut + RESET);
+                try {
+                    //si prepara il buffer per il messaggio da ricevere
+                    inBuffer = new byte[256];
+                    
+                    //2) RICEZIONE MESSAGGIO DEL CLIENT
+                    //si crea un datagramma UDP in cui trasportare il buffer per tutta la sua lunghezza
+                    in = new DatagramPacket(inBuffer, inBuffer.length);
+                    //si attende il pacchetto dal client
+                    dSocket.receive(in);
+                    
+                    //si recupera l'indirizzo IP e la porta UDP del client
+                    InetAddress indirizzoClient = in.getAddress();
+                    int portaClient = in.getPort();
+                    
+                    //si stampa a video il messaggio ricevuto dal client
+                    msgIn = new String(in.getData(), 0, in.getLength());
+                    System.out.println(ROSSO + "Messaggio ricevuto dal client " + indirizzoClient
+                            + ":" + portaClient + "\n\t" + msgIn + RESET);
+                    
+                    //3)RISPOSTA AL CLIENT
+                    //si prepara il datagramma con i dati da inviare
+                    msgOut = "Ricevuta richiesta!";
+                    out = new DatagramPacket(msgOut.getBytes(), msgOut.length(), indirizzoClient, portaClient);
+                    
+                    //si inviano i dati
+                    dSocket.send(out);
+                    System.out.println(BLU + "Spedito messaggio al client: " + msgOut + RESET);
+                    
+                    //4)INVIO MESSAGGIO AL GRUPPO DOPO UNA SOSPENSIONE
+                    //IP gruppo
+                    groupAddress = InetAddress.getByName("239.255.255.250");
+                    //si inizializza la porta del gruppo
+                    int groupPort = 1900;
+                    
+                    //si prepara il datagramma con i dati da inviare al gruppo
+                    msgOut = "Benvenuti a tutti!";
+                    
+                    out = new DatagramPacket(msgOut.getBytes(), msgOut.length(), groupAddress, groupPort);
+                    
+                    //invio dati
+                    dSocket.send(out);
+                    System.out.println(BLU + "Spedito messaggio al gruppo: " + msgOut + RESET);
+                } catch (IOException ex) {
+                    Logger.getLogger(UDPMulServer.class.getName()).log(Level.SEVERE, null, ex);
+                }
         }
-    }
-    catch (BindException ex) {
+    }catch (BindException ex) {
             Logger.getLogger(UDPMulServer.class.getName()).log(Level.SEVERE, null, ex);
         System.err.println("Porta già in uso");
     }
@@ -127,3 +130,4 @@ public class UDPMulServer {
 }
 
 }
+
